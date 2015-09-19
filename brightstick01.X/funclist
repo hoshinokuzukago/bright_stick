@@ -1,0 +1,13 @@
+_lightUp: CODE, 1424 0 72
+_main: CODE, 798 0 258
+_getKeyNo: CODE, 1496 0 70
+__initialization: CODE, 1766 0 12
+_LEDTurnOn: CODE, 1672 0 50
+_lightDown: CODE, 1722 0 44
+_patternCopy: CODE, 1330 0 94
+_nextColorType: CODE, 1620 0 52
+_LedColors: SMALLCONST, 769 0 27
+_keySelect: CODE, 1056 0 180
+_patternCopyFirst: CODE, 1236 0 94
+_changeBright: CODE, 1566 0 54
+Total: 1007

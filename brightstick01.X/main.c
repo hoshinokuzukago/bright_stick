@@ -5,6 +5,7 @@
  * Created on 2014/11/23, 21:48
  */
 
+/* illumi Mode */
 #include <stdio.h>
 #include <stdlib.h>
 #include <xc.h>

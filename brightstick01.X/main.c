@@ -5,7 +5,7 @@
  * Created on 2014/11/23, 21:48
  */
 
-/* illumi Mode */
+/* illumi Mode 2015/09/22 */
 #include <stdio.h>
 #include <stdlib.h>
 #include <xc.h>
@@ -43,6 +43,9 @@
 #define KEY_TIMEUP      54          // key check span
 #define LIGHT_UP        20          // LED Light turn on Span
 #define KEY_PUSH_CNT    3           // KEy Push Count
+#define ILLUMI_MOVE_CHG  500        // Illumi mode move timeup
+#define ILLUMI_MOVE_STAY 10         // Illumi mode move stayColor
+#define ILLUMI_FLASH_CHG 5000       // Illumi mode flash timeup 
 
 #define KEYNO_NONE          0x00    // None
 #define KEYNO_F1            0x01    // F1
@@ -80,6 +83,43 @@ enum{
     COLOR_MAX
 };
 
+
+enum{
+    NORMAL_MODE = 0,
+    FLASH_MODE,
+    MOVE_MODE,
+    MODE_MAX
+
+};
+
+enum{
+    FLASH_RED =0,
+    FLASH_GREEN,
+    FLASH_BLUE,
+    FLASH_YERROW,
+    FLASH_PINK,
+    FLASH_SKY,
+    FLASH_ORANGE,
+    FLASH_PARPLE,
+    FLASH_WHITE,
+    FLASH_MAX
+};
+
+enum{
+    MOVE_RED =0,
+    MOVE_GREEN,
+    MOVE_BLUE,
+    MOVE_YERROW,
+    MOVE_PINK,
+    MOVE_SKY,
+    MOVE_ORANGE,
+    MOVE_PARPLE,
+    MOVE_WHITE,
+    MOVE_MAX
+};
+
+
+
 static unsigned char keySelect();
 static unsigned char getKeyNo();
 static void LEDTurnOn();
@@ -90,6 +130,10 @@ static void lightUp(unsigned char colorIndex);
 static void lightDown(unsigned char colorIndex);
 static unsigned char nextColorType(unsigned char nowType);
 static unsigned char beforeColorType(unsigned char nowType);
+static unsigned char nextIllumiMode(unsigned char nowType);
+static void changeFlashIllumi(unsigned char* colorIndex);
+static void changeMoveIllumi(unsigned char* colorIndex, unsigned char* stay);
+
 
 static unsigned char ledBright[3];
 static unsigned char ledBrightNext[3];
@@ -99,6 +143,32 @@ static unsigned char keyStanBy;
 void DelayUs(int dlyus);
 
 static const unsigned char LedColors[COLOR_MAX][3] =
+{
+     {10,0,0}            /* Red    */
+    ,{0,10,0}            /* Green  */
+    ,{0,0,10}            /* Blue   */
+    ,{10,4,0}            /* Yerrow */
+    ,{7,0,2}             /* Pink   */
+    ,{0,5,5}             /* sky    */
+    ,{12,2,0}            /* Orange */
+    ,{5,0,5}             /* parple */
+    ,{7,3,4}             /* white  */
+};
+
+static const unsigned char IllumiMoveColors[MOVE_MAX][3] =
+{
+     {10,0,0}            /* Red    */
+    ,{0,10,0}            /* Green  */
+    ,{0,0,10}            /* Blue   */
+    ,{10,4,0}            /* Yerrow */
+    ,{7,0,2}             /* Pink   */
+    ,{0,5,5}             /* sky    */
+    ,{12,2,0}            /* Orange */
+    ,{5,0,5}             /* parple */
+    ,{7,3,4}             /* white  */
+};
+
+static const unsigned char IllumiFlashColors[FLASH_MAX][3] =
 {
      {10,0,0}            /* Red    */
     ,{0,10,0}            /* Green  */
@@ -131,17 +201,30 @@ void main(void){
                                            // 8BIT PS_1/2
     unsigned char keyChkCount;             // Counter for KeyCheck
     unsigned char BrightCount;             //Counter for Bright Adjust
+    unsigned short illumiMoveCount;
+    unsigned short illumiFlashCount;
+    unsigned char moveStayCount;
     unsigned char keyNo;
 
     unsigned char colorTypeIndex;
 
+    unsigned char illumiMoveIndex;
+    unsigned char illumiFlashIndex;
+
     keyChkCount = 0;
     BrightCount = 0;
+    illumiMoveCount = 0;
+    illumiFlashCount = 0;
+    moveStayCount = 0;
     keyNo = KEYNO_NONE;
     saveKeyNo  = KEYNO_NONE;
     pushKeyCount = 0;
     colorTypeIndex = COLOR_RED;
+    illumiMoveIndex = FLASH_RED;
+    illumiFlashIndex = MOVE_RED;
+
     keyStanBy=1;
+    illumiMode = NORMAL_MODE;
 
     patternCopy(colorTypeIndex);
     patternCopyFirst(colorTypeIndex);
@@ -157,6 +240,8 @@ void main(void){
         /* count up */
         keyChkCount++;
         BrightCount++;
+        illumiMoveCount++;
+        illumiFlashCount++;
 
         /* Bright Adjust */
         changeBright(BrightCount);
@@ -166,6 +251,23 @@ void main(void){
             LEDTurnOn();
             BrightCount=0;
         }
+
+	/* Illumi Mode Flash */
+        if(illumiFlashCount >= ILLUMI_FLASH_CHG){
+            if(illumiMode == FLASH_MODE ){
+              changeFlashIllumi(&illumiMoveIndex);
+            }
+            illumiFlashCount = 0;
+        }
+
+        /* Illumi Mode Move */
+        if(illumiMoveCount >= ILLUMI_MOVE_CHG){
+            if(illumiMode == MOVE_MODE ){
+               changeMoveIllumi(&illumiMoveIndex, &moveStayCount);
+            }
+            illumiMoveCount = 0;
+        }
+
 
         /* Key push check */
         if(keyChkCount >= KEY_TIMEUP){
@@ -179,15 +281,17 @@ void main(void){
                     break;
 
                 case KEYNO_F1:
-               
+                    illumiMode = nextIllumiMode(illumiMode);
                     break;
 
                 case KEYNO_F2:
+                    illumiMode = NORMAL_MODE;
                     colorTypeIndex = nextColorType(colorTypeIndex);
                     patternCopy(colorTypeIndex);
                     break;
 
                 case KEYNO_F3:
+                    illumiMode = NORMAL_MODE;
                     colorTypeIndex =  beforeColorType(colorTypeIndex);
                     patternCopy(colorTypeIndex);
                     break;
@@ -468,6 +572,87 @@ static unsigned char beforeColorType(unsigned char nowType){
 
     return colorType;
     
+}
+
+
+static unsigned char nextIllumiMode(unsigned char nowType){
+    unsigned char illumi;
+    illumi = nowType;
+
+    if(illumi + 1 < MODE_MAX){
+        illumi++;
+    }else{
+        illumi=0;
+    }
+
+    return illumi;
+}
+
+
+static void changeFlashIllumi(unsigned char* colorIndex){
+   if(colorIndex + 1 < MOVE_MAX){
+      colorIndex++;
+   }else{
+      colorIndex=0;
+   }
+   ledBrightNext[INDEX_RED]=IllumiFlashColors[colorIndex][INDEX_RED];
+   ledBrightNext[INDEX_GREEN]=IllumiFlashColors[colorIndex][INDEX_GREEN];
+   ledBrightNext[INDEX_BLUE]=IllumiFlashColors[colorIndex][INDEX_BLUE];
+   return;
+}
+
+static void changeMoveIllumi(unsigned char* colorIndex, unsigned char* stay){
+   
+
+   if((ledBrightNext[INDEX_RED] == IllumiMoveColors[INDEX_RED]) 
+     &&(ledBrightNext[INDEX_GREEN] == IllumiMoveColors[INDEX_GREEN])
+     &&(ledBrightNext[INDEX_BLUE] == IllumiMoveColors[INDEX_BLUE])){
+
+       if(stay + 1 < ILLUMI_MOVE_STAY){
+           stay++;
+       }else{
+           stay=0;
+          
+          if(colorIndex + 1 < MOVE_MAX){
+             colorIndex++;
+          }else{
+             colorIndex=0;
+          }
+        ledBrightNext[INDEX_RED]=IllumiMoveColors[colorIndex][INDEX_RED];
+        ledBrightNext[INDEX_GREEN]=IllumiMoveColors[colorIndex][INDEX_GREEN];
+        ledBrightNext[INDEX_BLUE]=IllumiMoveColors[colorIndex][INDEX_BLUE];
+
+       }
+       return;
+   }
+
+
+   if( ledBrightNext[INDEX_RED] < IllumiMoveColors[colorIndex][INDEX_RED] ){
+       ledBrightNext[INDEX_RED]++;
+   }
+
+   if( ledBrightNext[INDEX_RED] > IllumiMoveColors[colorIndex][INDEX_RED] ){
+       ledBrightNext[INDEX_RED]--;
+   }
+
+   if( ledBrightNext[INDEX_GREEN] < IllumiMoveColors[colorIndex][INDEX_GREEN] ){
+       ledBrightNext[INDEX_GREEN]++;
+   }
+
+   if( ledBrightNext[INDEX_GREEN] > IllumiMoveColors[colorIndex][INDEX_GREEN] ){
+       ledBrightNext[INDEX_GREEN]--;
+   }
+
+   if( ledBrightNext[INDEX_BLUE] < IllumiMoveColors[colorIndex][INDEX_BLUE] ){
+       ledBrightNext[INDEX_BLUE]++;
+   }
+
+   if( ledBrightNext[INDEX_BLUE] > IllumiMoveColors[colorIndex][INDEX_BLUE] ){
+       ledBrightNext[INDEX_BLUE]--;
+   }
+
+
+    return;
 }
 
 

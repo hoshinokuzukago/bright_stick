@@ -203,13 +203,13 @@ void main(void){
     unsigned char BrightCount;             //Counter for Bright Adjust
     unsigned short illumiMoveCount;
     unsigned short illumiFlashCount;
-    unsigned char moveStayCount;
+    static unsigned char moveStayCount;
     unsigned char keyNo;
 
     unsigned char colorTypeIndex;
 
-    unsigned char illumiMoveIndex;
-    unsigned char illumiFlashIndex;
+    static unsigned char illumiMoveIndex;
+    static unsigned char illumiFlashIndex;
 
     keyChkCount = 0;
     BrightCount = 0;
@@ -220,8 +220,8 @@ void main(void){
     saveKeyNo  = KEYNO_NONE;
     pushKeyCount = 0;
     colorTypeIndex = COLOR_RED;
-    illumiMoveIndex = FLASH_RED;
-    illumiFlashIndex = MOVE_RED;
+    illumiMoveIndex = MOVE_RED;
+    illumiFlashIndex = FLASH_RED;
 
     keyStanBy=1;
     illumiMode = NORMAL_MODE;
@@ -255,7 +255,7 @@ void main(void){
 	/* Illumi Mode Flash */
         if(illumiFlashCount >= ILLUMI_FLASH_CHG){
             if(illumiMode == FLASH_MODE ){
-              changeFlashIllumi(&illumiMoveIndex);
+              changeFlashIllumi(&illumiFlashIndex);
             }
             illumiFlashCount = 0;
         }

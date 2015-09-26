@@ -205,7 +205,7 @@ void main(void){
     unsigned short illumiFlashCount;
     static unsigned char moveStayCount;
     unsigned char keyNo;
-
+    unsigned char illumiMode;
     unsigned char colorTypeIndex;
 
     static unsigned char illumiMoveIndex;
@@ -590,64 +590,64 @@ static unsigned char nextIllumiMode(unsigned char nowType){
 
 
 static void changeFlashIllumi(unsigned char* colorIndex){
-   if(colorIndex + 1 < MOVE_MAX){
-      colorIndex++;
+   if(*colorIndex + 1 < MOVE_MAX){
+      *colorIndex++;
    }else{
-      colorIndex=0;
+      *colorIndex=0;
    }
-   ledBrightNext[INDEX_RED]=IllumiFlashColors[colorIndex][INDEX_RED];
-   ledBrightNext[INDEX_GREEN]=IllumiFlashColors[colorIndex][INDEX_GREEN];
-   ledBrightNext[INDEX_BLUE]=IllumiFlashColors[colorIndex][INDEX_BLUE];
+   ledBrightNext[INDEX_RED]=IllumiFlashColors[*colorIndex][INDEX_RED];
+   ledBrightNext[INDEX_GREEN]=IllumiFlashColors[*colorIndex][INDEX_GREEN];
+   ledBrightNext[INDEX_BLUE]=IllumiFlashColors[*colorIndex][INDEX_BLUE];
    return;
 }
 
 static void changeMoveIllumi(unsigned char* colorIndex, unsigned char* stay){
    
 
-   if((ledBrightNext[INDEX_RED] == IllumiMoveColors[INDEX_RED]) 
-     &&(ledBrightNext[INDEX_GREEN] == IllumiMoveColors[INDEX_GREEN])
-     &&(ledBrightNext[INDEX_BLUE] == IllumiMoveColors[INDEX_BLUE])){
+   if((ledBrightNext[INDEX_RED] == IllumiMoveColors[*colorIndex][INDEX_RED]) 
+     &&(ledBrightNext[INDEX_GREEN] == IllumiMoveColors[*colorIndex][INDEX_GREEN])
+     &&(ledBrightNext[INDEX_BLUE] == IllumiMoveColors[*colorIndex][INDEX_BLUE])){
 
-       if(stay + 1 < ILLUMI_MOVE_STAY){
-           stay++;
+       if(*stay + 1 < ILLUMI_MOVE_STAY){
+           *stay++;
        }else{
-           stay=0;
+           *stay=0;
           
-          if(colorIndex + 1 < MOVE_MAX){
-             colorIndex++;
+          if(*colorIndex + 1 < MOVE_MAX){
+             *colorIndex++;
           }else{
-             colorIndex=0;
+             *colorIndex=0;
           }
-        ledBrightNext[INDEX_RED]=IllumiMoveColors[colorIndex][INDEX_RED];
-        ledBrightNext[INDEX_GREEN]=IllumiMoveColors[colorIndex][INDEX_GREEN];
-        ledBrightNext[INDEX_BLUE]=IllumiMoveColors[colorIndex][INDEX_BLUE];
+        ledBrightNext[INDEX_RED]=IllumiMoveColors[*colorIndex][INDEX_RED];
+        ledBrightNext[INDEX_GREEN]=IllumiMoveColors[*colorIndex][INDEX_GREEN];
+        ledBrightNext[INDEX_BLUE]=IllumiMoveColors[*colorIndex][INDEX_BLUE];
 
        }
        return;
    }
 
 
-   if( ledBrightNext[INDEX_RED] < IllumiMoveColors[colorIndex][INDEX_RED] ){
+   if( ledBrightNext[INDEX_RED] < IllumiMoveColors[*colorIndex][INDEX_RED] ){
        ledBrightNext[INDEX_RED]++;
    }
 
-   if( ledBrightNext[INDEX_RED] > IllumiMoveColors[colorIndex][INDEX_RED] ){
+   if( ledBrightNext[INDEX_RED] > IllumiMoveColors[*colorIndex][INDEX_RED] ){
        ledBrightNext[INDEX_RED]--;
    }
 
-   if( ledBrightNext[INDEX_GREEN] < IllumiMoveColors[colorIndex][INDEX_GREEN] ){
+   if( ledBrightNext[INDEX_GREEN] < IllumiMoveColors[*colorIndex][INDEX_GREEN] ){
        ledBrightNext[INDEX_GREEN]++;
    }
 
-   if( ledBrightNext[INDEX_GREEN] > IllumiMoveColors[colorIndex][INDEX_GREEN] ){
+   if( ledBrightNext[INDEX_GREEN] > IllumiMoveColors[*colorIndex][INDEX_GREEN] ){
        ledBrightNext[INDEX_GREEN]--;
    }
 
-   if( ledBrightNext[INDEX_BLUE] < IllumiMoveColors[colorIndex][INDEX_BLUE] ){
+   if( ledBrightNext[INDEX_BLUE] < IllumiMoveColors[*colorIndex][INDEX_BLUE] ){
        ledBrightNext[INDEX_BLUE]++;
    }
 
-   if( ledBrightNext[INDEX_BLUE] > IllumiMoveColors[colorIndex][INDEX_BLUE] ){
+   if( ledBrightNext[INDEX_BLUE] > IllumiMoveColors[*colorIndex][INDEX_BLUE] ){
        ledBrightNext[INDEX_BLUE]--;
    }
 
